@@ -1,0 +1,32 @@
+SPLUNK URL: http://bgl-vms-vm1221:8000/services/collector 
+http://bgl-vms-vm1221:8000/en-US/app/launcher/home
+
+
+SPLUNK ACCESS TOKEN: a9d57629-be8d-443d-b0b4-8c7e552543e5
+
+SPLUNK ACCESS TOKEN: 9c5729d6-532a-4886-8a7f-a781b97d775f
+
+gowe@GOWE-M-F77P SplunkDataNotification % curl -k "https://bgl-vms-vm1221:8088/services/collector/event" \
+-H "Authorization: Splunk 7f2fbe6c-2ff6-401a-9193-4611c5f6fdd0" \
+-d '{"event": "Test event from curl", "sourcetype": "manual"}'
+
+{"text":"Success","code":0}%  
+
+curl -k -X POST "https://bgl-vms-vm1221:8089/services/auth/login" -d "username=gowe&password=06AugDec1996!@"
+
+getting session token 
+
+
+python3 -m pip install requests
+pip install requests
+
+
+
+
+
+Make a Search Request and assign an SID to this search.
+https://http://bgl-vms-vm1221:8089/servicesNS/{}/search/search/jobs
+Check the status of search request using SID
+https://http://bgl-vms-vm1221:8089/servicesNS/{}/search/search/jobs/{}
+If job status is completed then check the results
+https://http://bgl-vms-vm1221:8089/servicesNS/{}/search/search/jobs/{}/results

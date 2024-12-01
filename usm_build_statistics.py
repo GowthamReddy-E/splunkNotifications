@@ -4,9 +4,19 @@ from timeframepayload import get_timeframe_payload
 import commondata
 from tabulate import tabulate
 import warnings
+import argparse
 
 # Suppress warnings for insecure HTTPS requests
 warnings.filterwarnings("ignore", message="Unverified HTTPS request")
+
+# Setup argument parsing
+parser = argparse.ArgumentParser(description='Run the Splunk query and process results.')
+parser.add_argument('query_name', type=str, help='The name of the query to run')
+args = parser.parse_args()
+
+# File paths
+query_file_path = '/Users/gowe/Desktop/MyWork/SplunkDataNotification/usm_splunk_query_precommit.txt'
+branches_file_path = '/Users/gowe/Desktop/MyWork/SplunkDataNotification/branches.txt'
 
 def load_query(file_path, query_name):
     """Load a specific query from a file."""
@@ -32,17 +42,12 @@ def load_branches(file_path):
         branches = file.read().splitlines()
     return ", ".join(f'"{branch.strip()}"' for branch in branches if branch.strip())
 
-# File paths
-query_file_path = '/Users/gowe/Desktop/MyWork/SplunkDataNotification/splunk_query.txt'
-branches_file_path = '/Users/gowe/Desktop/MyWork/SplunkDataNotification/branches.txt'
-
 # Load the query and branch names
-query_name = 'dynamically'
-search_query_template = load_query(query_file_path, query_name)
+search_query_template = load_query(query_file_path, args.query_name)
 branch_names = load_branches(branches_file_path)
 
 if not search_query_template:
-    raise ValueError(f"Query '{query_name}' not found in {query_file_path}")
+    raise ValueError(f"Query '{args.query_name}' not found in {query_file_path}")
 if not branch_names:
     raise ValueError(f"No branch names found in {branches_file_path}")
 

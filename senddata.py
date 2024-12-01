@@ -7,6 +7,10 @@ import argparse
 # Suppress warnings for insecure HTTPS requests
 warnings.filterwarnings("ignore", message="Unverified HTTPS request")
 
+# Your bot details
+access_token = "NTg0ZTFlOWQtNzUwZi00NDVhLWI4MWYtYjlkM2RjYmFiZWRiOWMyMjI5NDktZTQ0_PF84_1eb65fdf-9643-417f-9974-ad72cae0e10f"
+room_id = "Y2lzY29zcGFyazovL3VzL1JPT00vZjk4NDI5NDAtMTdmMS0xMWVmLTliNTQtNGI1MDc3MjIzZDlh"
+
 def load_query(file_path, query_name):
     """Load a specific query from a file."""
     with open(file_path, 'r') as file:
@@ -32,6 +36,23 @@ def load_branches(file_path):
     # Format branch names as Splunk-compatible IN ("branch1", "branch2", ...)
     return ", ".join(f'"{branch.strip()}"' for branch in branches if branch.strip())
 
+def send_message_to_bot(message):
+    """Send the formatted message to the bot."""
+    url = f"https://api.ciscospark.com/v1/messages"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "roomId": room_id,
+        "text": message
+    }
+    response = requests.post(url, headers=headers, json=data)
+    if response.status_code == 200:
+        print("Message sent successfully to the bot.")
+    else:
+        print(f"Failed to send message: {response.text}")
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run Splunk queries with dynamic arguments")
     parser.add_argument("--query_file", required=True, help="Path to the query file")
@@ -49,11 +70,14 @@ if __name__ == "__main__":
     if not branch_names:
         raise ValueError(f"No branch names found in {args.branches_file}")
 
+    # Initialize message to send to the bot
+    bot_message = "Splunk Query Results:\n\n"
+
     # Loop through each query
     for query_name in args.query_names:
         search_query_template = load_query(args.query_file, query_name)
         if not search_query_template:
-            print(f"Query '{query_name}' not found in {args.query_file}")
+            bot_message += f"Query '{query_name}' not found in {args.query_file}\n\n"
             continue
         
         # Inject branch names into the query
@@ -75,7 +99,7 @@ if __name__ == "__main__":
         
         # Check for job creation success
         if resp.status_code != 201:
-            print(f"Failed to create job for query '{query_name}': {resp.text}")
+            bot_message += f"Failed to create job for query '{query_name}': {resp.text}\n\n"
             continue
         
         # Monitor job status
@@ -99,16 +123,10 @@ if __name__ == "__main__":
         if results:
             headers = results[0].keys()  # Use keys of the first result as headers
             rows = [list(result.values()) for result in results]
-            print(f"\nResults for query '{query_name}':\n")
-            print(tabulate(rows, headers=headers, tablefmt="grid"))
+            bot_message += f"\nResults for query '{query_name}':\n"
+            bot_message += tabulate(rows, headers=headers, tablefmt="grid") + "\n\n"
         else:
-            print(f"No results for query '{query_name}'")
-
-# python usm_pre_build_stats_dyn.py \
-#     --query_file /Users/gowe/Desktop/MyWork/SplunkDataNotification/usm_splunk_query_precommit.txt \
-#     --branches_file /Users/gowe/Desktop/MyWork/SplunkDataNotification/branches.txt \
-#     --username gowe \
-#     --password "06AugDec1996\!@" \
-#     --earliest_time="-240h" \
-#     --latest_time="now" \
-#     --query_names USM_Pre_Stage_Information
+            bot_message += f"No results for query '{query_name}'\n\n"
+    
+    # Send the formatted message to the bot
+    send_message_to_bot(bot_message)

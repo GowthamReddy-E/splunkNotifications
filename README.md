@@ -15,10 +15,17 @@ this command get the statistics of usm this usm_build_statistics.py file runs an
 
 python usm_pre_build_stats_dyn.py \
     --query_file /Users/gowe/Desktop/MyWork/SplunkDataNotification/usm_splunk_query_precommit.txt \
-    --branches_file /Users/gowe/Desktop/MyWork/SplunkDataNotification/branches.txt \
+    --branches_file /Users/gowe/Desktop/MyWork/SplunkDataNotification/pre_branches.txt \
     --username gowe \
     --password "06AugDec1996\!@" \
     --earliest_time="-240h" \
     --latest_time="now" \
     --query_names USM_Pre_Stage_Information
 
+working fine not send to webex
+
+
+
+ python3 -u usm_build_statistics.py USM_Pre_Total_Builds
+
+ 

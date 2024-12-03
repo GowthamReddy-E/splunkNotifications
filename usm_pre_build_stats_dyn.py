@@ -106,7 +106,7 @@ if __name__ == "__main__":
 
 # python usm_pre_build_stats_dyn.py \
 #     --query_file /Users/gowe/Desktop/MyWork/SplunkDataNotification/usm_splunk_query_precommit.txt \
-#     --branches_file /Users/gowe/Desktop/MyWork/SplunkDataNotification/branches.txt \
+#     --branches_file /Users/gowe/Desktop/MyWork/SplunkDataNotification/pre_branches.txt \
 #     --username gowe \
 #     --password "06AugDec1996\!@" \
 #     --earliest_time="-240h" \

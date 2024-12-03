@@ -16,7 +16,7 @@ args = parser.parse_args()
 
 # File paths
 query_file_path = '/Users/gowe/Desktop/MyWork/SplunkDataNotification/usm_splunk_query_precommit.txt'
-branches_file_path = '/Users/gowe/Desktop/MyWork/SplunkDataNotification/branches.txt'
+branches_file_path = '/Users/gowe/Desktop/MyWork/SplunkDataNotification/pre_branches.txt'
 
 def load_query(file_path, query_name):
     """Load a specific query from a file."""

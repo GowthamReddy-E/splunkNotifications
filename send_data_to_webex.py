@@ -45,7 +45,7 @@ def send_message_to_bot(message):
     }
     data = {
         "roomId": room_id,
-        "text": message
+        "markdown": message  # Using markdown for better formatting
     }
     response = requests.post(url, headers=headers, json=data)
     if response.status_code == 200:
@@ -71,13 +71,13 @@ if __name__ == "__main__":
         raise ValueError(f"No branch names found in {args.branches_file}")
 
     # Initialize message to send to the bot
-    bot_message = "Splunk Query Results:\n\n"
+    bot_message = "### Splunk Query Results:\n\n"
 
     # Loop through each query
     for query_name in args.query_names:
         search_query_template = load_query(args.query_file, query_name)
         if not search_query_template:
-            bot_message += f"Query '{query_name}' not found in {args.query_file}\n\n"
+            bot_message += f"**Query '{query_name}' not found in {args.query_file}**\n\n"
             continue
         
         # Inject branch names into the query
@@ -99,7 +99,7 @@ if __name__ == "__main__":
         
         # Check for job creation success
         if resp.status_code != 201:
-            bot_message += f"Failed to create job for query '{query_name}': {resp.text}\n\n"
+            bot_message += f"**Failed to create job for query '{query_name}':** {resp.text}\n\n"
             continue
         
         # Monitor job status
@@ -123,10 +123,24 @@ if __name__ == "__main__":
         if results:
             headers = results[0].keys()  # Use keys of the first result as headers
             rows = [list(result.values()) for result in results]
-            bot_message += f"\nResults for query '{query_name}':\n"
-            bot_message += tabulate(rows, headers=headers, tablefmt="grid") + "\n\n"
+            bot_message += f"\n**Results for query '{query_name}':**\n\n"
+            bot_message += "```\n" + tabulate(rows, headers=headers, tablefmt="grid") + "\n```\n\n"
         else:
-            bot_message += f"No results for query '{query_name}'\n\n"
+            bot_message += f"**No results for query '{query_name}'**\n\n"
     
     # Send the formatted message to the bot
     send_message_to_bot(bot_message)
+
+
+# python3 -u send_data_to_webex.py \
+#   --query_file "/Users/gowe/Desktop/MyWork/SplunkDataNotification/usm_splunk_query_precommit.txt" \
+#   --branches_file "/Users/gowe/Desktop/MyWork/SplunkDataNotification/pre_branches.txt" \
+#   --username "gowe" \
+#   --password "06AugDec1996\!@" \
+#   --earliest_time="-240h" \
+#   --latest_time="now" \
+#   --query_names "USM_Pre_Stage_Information"
+
+
+
+# this code send the data to splunk perfectly 

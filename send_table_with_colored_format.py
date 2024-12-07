@@ -7,6 +7,10 @@ import argparse
 # Suppress warnings for insecure HTTPS requests
 warnings.filterwarnings("ignore", message="Unverified HTTPS request")
 
+# Your bot details
+access_token = "NTg0ZTFlOWQtNzUwZi00NDVhLWI4MWYtYjlkM2RjYmFiZWRiOWMyMjI5NDktZTQ0_PF84_1eb65fdf-9643-417f-9974-ad72cae0e10f"
+room_id = "Y2lzY29zcGFyazovL3VzL1JPT00vZjk4NDI5NDAtMTdmMS0xMWVmLTliNTQtNGI1MDc3MjIzZDlh"
+
 def load_query(file_path, query_name):
     """Load a specific query from a file."""
     with open(file_path, 'r') as file:
@@ -32,6 +36,38 @@ def load_branches(file_path):
     # Format branch names as Splunk-compatible IN ("branch1", "branch2", ...)
     return ", ".join(f'"{branch.strip()}"' for branch in branches if branch.strip())
 
+def send_message_to_bot(header, message):
+    """Send a formatted message to the bot."""
+    url = "https://api.ciscospark.com/v1/messages"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json"
+    }
+    # Send the header first (e.g., query title)
+    response = requests.post(url, headers=headers, json={"roomId": room_id, "markdown": header})
+    if response.status_code != 200:
+        print(f"Failed to send header: {response.text}")
+    # Then send the body in chunks
+    chunk_size = 7000  # Limit to Webex's constraints
+    body_lines = message.split("\n")
+    chunk = "```\n"  # Start markdown block
+    for line in body_lines:
+        if len(chunk) + len(line) + 1 > chunk_size:
+            # Close the table block before sending
+            if not chunk.endswith("\n```"):
+                chunk += "\n```"
+            response = requests.post(url, headers=headers, json={"roomId": room_id, "markdown": chunk})
+            if response.status_code != 200:
+                print(f"Failed to send chunk: {response.text}")
+            chunk = "```\n"  # Reset for the next chunk
+        chunk += line + "\n"
+    if chunk.strip():  # Send any remaining content
+        if not chunk.endswith("\n```"):
+            chunk += "\n```"
+        response = requests.post(url, headers=headers, json={"roomId": room_id, "markdown": chunk})
+        if response.status_code != 200:
+            print(f"Failed to send final chunk: {response.text}")
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run Splunk queries with dynamic arguments")
     parser.add_argument("--query_file", required=True, help="Path to the query file")
@@ -53,7 +89,8 @@ if __name__ == "__main__":
     for query_name in args.query_names:
         search_query_template = load_query(args.query_file, query_name)
         if not search_query_template:
-            print(f"Query '{query_name}' not found in {args.query_file}")
+            header = f"### Splunk Query Results:\n\n**Query '{query_name}' not found in {args.query_file}**"
+            send_message_to_bot(header, "")
             continue
         
         # Inject branch names into the query
@@ -75,7 +112,8 @@ if __name__ == "__main__":
         
         # Check for job creation success
         if resp.status_code != 201:
-            print(f"Failed to create job for query '{query_name}': {resp.text}")
+            header = f"### Splunk Query Results:\n\n**Failed to create job for query '{query_name}':** {resp.text}"
+            send_message_to_bot(header, "")
             continue
         
         # Monitor job status
@@ -99,16 +137,21 @@ if __name__ == "__main__":
         if results:
             headers = results[0].keys()  # Use keys of the first result as headers
             rows = [list(result.values()) for result in results]
-            print(f"\nResults for query '{query_name}':\n")
-            print(tabulate(rows, headers=headers, tablefmt="grid"))
+            header = f"### Splunk Query Results:\n\n**Results for query '{query_name}':**"
+            body = tabulate(rows, headers=headers, tablefmt="grid")
+            send_message_to_bot(header, body)
         else:
-            print(f"No results for query '{query_name}'")
+            header = f"### Splunk Query Results:\n\n**Results for query '{query_name}':**"
+            body = "No results found"
+            send_message_to_bot(header, body)
 
-# python usm_pre_build_stats_dyn.py \
-#     --query_file /Users/gowe/Desktop/MyWork/SplunkDataNotification/usm_splunk_query_precommit.txt \
-#     --branches_file /Users/gowe/Desktop/MyWork/SplunkDataNotification/pre_branches.txt \
-#     --username gowe \
-#     --password "06AugDec1996\!@" \
-#     --earliest_time="-240h" \
-#     --latest_time="now" \
-#     --query_names USM_Pre_Stage_Information
+
+
+# python3 -u send_table_with_colored_format.py \
+#   --query_file "/Users/gowe/Desktop/MyWork/SplunkDataNotification/usm_splunk_query_precommit.txt" \
+#   --branches_file "/Users/gowe/Desktop/MyWork/SplunkDataNotification/pre_branches.txt" \
+#   --username "gowe" \
+#   --password "06AugDec1996\!@" \
+#   --earliest_time="-48h" \
+#   --latest_time="now" \
+#   --query_names "USM_Pre_Stage_Information"

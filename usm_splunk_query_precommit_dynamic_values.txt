@@ -9,104 +9,41 @@ host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" metadata.branchName IN
 
 [USM_Pre_Successful_Builds]
 search index="jenkins" event_tag="build_summary" sourcetype="json:jenkins" 
-host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" metadata.branchName IN ("IMS_7_8_MAIN")
+host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" metadata.branchName IN ($BRANCH_NAMES)
 | fillnull value="-" metadata.branchName
-| search metadata.branchName IN ("IMS_7_8_MAIN")
+| search metadata.branchName IN ($BRANCH_NAMES)
 | stats count(eval(job_result=="SUCCESS")) as successful_builds
 
 
 
 [USM_Pre_Failed_Builds]
 search index="jenkins" event_tag="build_summary" sourcetype="json:jenkins" 
-host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" metadata.branchName IN ("IMS_7_8_MAIN")
+host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" metadata.branchName IN ($BRANCH_NAMES)
 | fillnull value="-" metadata.branchName
-| search metadata.branchName IN ("IMS_7_8_MAIN")
+| search metadata.branchName IN ($BRANCH_NAMES)
 | stats count(eval(job_result=="FAILURE")) as failed_builds
 
 
 
 [USM_Pre_Unstable_Builds]
 search index="jenkins" event_tag="build_summary" sourcetype="json:jenkins" 
-host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" metadata.branchName IN ("IMS_7_8_MAIN")
+host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" metadata.branchName IN ($BRANCH_NAMES)
 | fillnull value="-" metadata.branchName
-| search metadata.branchName IN ("IMS_7_8_MAIN")
+| search metadata.branchName IN ($BRANCH_NAMES)
 | stats count(eval(job_result=="UNSTABLE")) as unstable_builds
 
 
 
 [USM_Pre_Aborted_Builds]
 search index="jenkins" event_tag="build_summary" sourcetype="json:jenkins" 
-host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" metadata.branchName IN ("IMS_7_8_MAIN")
+host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" metadata.branchName IN ($BRANCH_NAMES)
 | fillnull value="-" metadata.branchName
-| search metadata.branchName IN ("IMS_7_8_MAIN")
+| search metadata.branchName IN ($BRANCH_NAMES)
 | stats count(eval(job_result=="ABORTED")) as aborted_builds
 
 
 
 [USM_Pre_Build_stats_Table_format]
-search (index="jenkins" event_tag="build_summary" sourcetype="json:jenkins" host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" metadata.branchName IN ("BAZEL_IMS_7_8", "IMS_7_0_MR", "IMS_7_2_MR", "IMS_7_4_1_MAIN", "IMS_7_6_CDFMC_MAIN", "IMS_7_6_CDFMC_RC", "IMS_7_6_CDFMC_RC_DROP6", "IMS_7_6_MAIN", "IMS_7_7_0", "IMS_7_7_CDFMC_MAIN", "IMS_7_7_MAIN", "IMS_7_8_MAIN", "IMS_7_4_1_CDFMC", "IMS_7_4_2_PATCH", "INTF_STAB_7_7", "MODEL_MIGRATION_7_6", "IMS_7_0_fcs_throttle", "ztna_p1")) OR
-(index="jenkins_statistics" source="/job_event" sourcetype="json:jenkins" host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" type="completed" metadata.branchName IN ("BAZEL_IMS_7_8", "IMS_7_0_MR", "IMS_7_2_MR", "IMS_7_4_1_MAIN", "IMS_7_6_CDFMC_MAIN", "IMS_7_6_CDFMC_RC", "IMS_7_6_CDFMC_RC_DROP6", "IMS_7_6_MAIN", "IMS_7_7_0", "IMS_7_7_CDFMC_MAIN", "IMS_7_7_MAIN", "IMS_7_8_MAIN", "IMS_7_4_1_CDFMC", "IMS_7_4_2_PATCH", "INTF_STAB_7_7", "MODEL_MIGRATION_7_6", "IMS_7_0_fcs_throttle", "ztna_p1"))
-| stats values(*) as * by job_name build_number
-| fillnull value="-" metadata.status
-| stats count as total_builds, 
-    count(eval(job_result=="SUCCESS")) as successful_builds, 
-    count(eval(job_result=="FAILURE")) as failed_builds, 
-    count(eval(job_result=="ABORTED")) as aborted_builds, 
-    count(eval(job_result=="UNSTABLE")) as unstable_builds, 
-    avg(job_duration) as average_job_duration by metadata.branchName
-| eval failure_percentage=round(((failed_builds+unstable_builds)/total_builds)*100,2)
-| eval aborted_percentage=round(((aborted_builds)/total_builds)*100,2)
-| eval rounded_average_job_duration = round(average_job_duration, 2)
-| eval average_job_duration_in_hhmmss=tostring(rounded_average_job_duration, "duration")
-| sort -failure_percentage, -total_builds
-| table metadata.branchName total_builds successful_builds failed_builds aborted_builds unstable_builds aborted_percentage failure_percentage average_job_duration_in_hhmmss
-| rename metadata.branchName as "Branch", 
-    total_builds as "Total Builds", 
-    successful_builds as "Successful Builds", 
-    failed_builds as "Failed Builds", 
-    aborted_builds as "Aborted Builds", 
-    unstable_builds as "Unstable Builds", 
-    aborted_percentage as "Aborted %", 
-    failure_percentage as "Failed or Unstable%", 
-    average_job_duration_in_hhmmss as "Average Build Duration"
-| addcoltotals labelfield="Branch" label="Total" 
-    "Total Builds" "Successful Builds" "Failed Builds" "Aborted Builds" "Unstable Builds"
-
-
-
-[USM_Pre_Stage_Information]
-search index="jenkins_statistics" source="/job_event" sourcetype="json:jenkins" host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" type="completed" metadata.branchName IN ("IMS_7_8_MAIN")
-    | eval stage_fields=mvzip('stages{}.name', mvzip('stages{}.duration',mvzip('stages{}.status','stages{}.id'))) 
-    | mvexpand stage_fields 
-    | rex field=stage_fields "(?<stage_name>.+),(?<duration>.+),(?<stage_status>.+),(?<stage_id>.+)"
-    | where NOT like(stage_name, "Branch: %")
-    |  stats count as total, max(stage_id) as stage_id count(eval(stage_status="SUCCESS")) as successful_stages, count(eval(stage_status="FAILURE")) as failed_stages,count(eval(stage_status="ABORTED")) as aborted_stages, count(eval(stage_status="UNSTABLE")) as unstable_stages by job_name, metadata.branchName, stage_name
-      |  eval failure_percentage=round(((failed_stages+unstable_stages)/total)*100,2)
-  | eval aborted_percentage=round(((aborted_stages)/total)*100,2)
-    | sort metadata.branchName stage_id
-| table metadata.branchName stage_name, metadata.branchName total, successful_stages, failed_stages, aborted_stages, unstable_stages, failure_percentage, aborted_percentage
-| rename stage_name as "Stage", metadata.branchName as "Branch", total as "Total", successful_stages as "Successful", failed_stages as "Failed", aborted_stages as "Aborted",unstable_stages as "Unstable", failure_percentage as "Failed or Unstable %", aborted_percentage as "Aborted %"
-
-
-
-[USM_Pre_Review_Statistics]
-search index="jenkins" event_tag="build_summary" sourcetype="json:jenkins" host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" 
-| stats count as total_builds, count(eval(job_result=="SUCCESS")) as successful_builds, count(eval(job_result=="FAILURE")) as failed_builds, count(eval(job_result=="ABORTED")) as aborted_builds, count(eval(job_result=="UNSTABLE")) as unstable_builds by metadata.review, review_owner, metadata.status, job_name, metadata.branchName
-| eval failure_percentage=round(((failed_builds+unstable_builds)/total_builds)*100,2)
-| eval aborted_percentage=round(((aborted_builds)/total_builds)*100,2)
-| sort -total_builds -failure_percentage
-| rename metadata.review as "Review", review_owner as "Author", job_name as "Job", metadata.branchName as "Branch", total_builds as "Total Builds", successful_builds as "Successful", failed_builds as "Failed", aborted_builds as "Aborted", unstable_builds as "Unstable", failure_percentage as "Failure %", aborted_percentage as "Aborted %"
-
-
-
-
-
-
-
-
-
-
-[USM_Pre_BUILD_STATISTICS_Table_format]
 search (index="jenkins" event_tag="build_summary" sourcetype="json:jenkins" host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" metadata.branchName IN ($BRANCH_NAMES)) OR
 (index="jenkins_statistics" source="/job_event" sourcetype="json:jenkins" host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" type="completed" metadata.branchName IN ($BRANCH_NAMES))
 | stats values(*) as * by job_name build_number
@@ -137,8 +74,25 @@ search (index="jenkins" event_tag="build_summary" sourcetype="json:jenkins" host
 
 
 
-[USM_Pre_Dynamic_Total_Builds_Example]
-search index="jenkins" event_tag="build_summary" sourcetype="json:jenkins" 
-host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" metadata.branchName IN ($BRANCH_NAMES)
-| fillnull value="-" metadata.branchName
-| stats count as total_builds
+[USM_Pre_Stage_Information]
+search index="jenkins_statistics" source="/job_event" sourcetype="json:jenkins" host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" type="completed" metadata.branchName IN ($BRANCH_NAMES)
+    | eval stage_fields=mvzip('stages{}.name', mvzip('stages{}.duration',mvzip('stages{}.status','stages{}.id'))) 
+    | mvexpand stage_fields 
+    | rex field=stage_fields "(?<stage_name>.+),(?<duration>.+),(?<stage_status>.+),(?<stage_id>.+)"
+    | where NOT like(stage_name, "Branch: %")
+    |  stats count as total, max(stage_id) as stage_id count(eval(stage_status="SUCCESS")) as successful_stages, count(eval(stage_status="FAILURE")) as failed_stages,count(eval(stage_status="ABORTED")) as aborted_stages, count(eval(stage_status="UNSTABLE")) as unstable_stages by job_name, metadata.branchName, stage_name
+      |  eval failure_percentage=round(((failed_stages+unstable_stages)/total)*100,2)
+  | eval aborted_percentage=round(((aborted_stages)/total)*100,2)
+    | sort metadata.branchName stage_id
+| table metadata.branchName stage_name, metadata.branchName total, successful_stages, failed_stages, aborted_stages, unstable_stages, failure_percentage, aborted_percentage
+| rename stage_name as "Stage", metadata.branchName as "Branch", total as "Total", successful_stages as "Successful", failed_stages as "Failed", aborted_stages as "Aborted",unstable_stages as "Unstable", failure_percentage as "Failed or Unstable %", aborted_percentage as "Aborted %"
+
+
+
+[USM_Pre_Review_Statistics]
+search index="jenkins" event_tag="build_summary" sourcetype="json:jenkins" host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" 
+| stats count as total_builds, count(eval(job_result=="SUCCESS")) as successful_builds, count(eval(job_result=="FAILURE")) as failed_builds, count(eval(job_result=="ABORTED")) as aborted_builds, count(eval(job_result=="UNSTABLE")) as unstable_builds by metadata.review, review_owner, metadata.status, job_name, metadata.branchName
+| eval failure_percentage=round(((failed_builds+unstable_builds)/total_builds)*100,2)
+| eval aborted_percentage=round(((aborted_builds)/total_builds)*100,2)
+| sort -total_builds -failure_percentage
+| rename metadata.review as "Review", review_owner as "Author", job_name as "Job", metadata.branchName as "Branch", total_builds as "Total Builds", successful_builds as "Successful", failed_builds as "Failed", aborted_builds as "Aborted", unstable_builds as "Unstable", failure_percentage as "Failure %", aborted_percentage as "Aborted %"

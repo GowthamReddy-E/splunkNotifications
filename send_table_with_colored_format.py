@@ -147,11 +147,11 @@ if __name__ == "__main__":
 
 
 
-# python3 -u send_table_with_colored_format.py \
-#   --query_file "/Users/gowe/Desktop/MyWork/SplunkDataNotification/usm_splunk_query_precommit.txt" \
-#   --branches_file "/Users/gowe/Desktop/MyWork/SplunkDataNotification/pre_branches.txt" \
+#  python3 -u send_table_with_colored_format.py \
+#   --query_file "/Users/gowe/Desktop/MyWork/SplunkDataNotification/usm_splunk_query_precommit_dynamic_values.txt" \
+#   --branches_file "/Users/gowe/Desktop/MyWork/SplunkDataNotification/usm_pre_branches.txt" \
 #   --username "gowe" \
 #   --password "06AugDec1996\!@" \
 #   --earliest_time="-48h" \
 #   --latest_time="now" \
-#   --query_names "USM_Pre_Stage_Information"
+#   --query_names "USM_Pre_Build_stats_Table_format"

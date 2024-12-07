@@ -28,4 +28,12 @@ working fine not send to webex
 
  python3 -u usm_build_statistics.py USM_Pre_Total_Builds
 
- 
+
+# python3 -u send_table_with_colored_format.py \
+#   --query_file "/Users/gowe/Desktop/MyWork/SplunkDataNotification/usm_splunk_query_precommit_dynamic_values.txt" \
+#   --branches_file "/Users/gowe/Desktop/MyWork/SplunkDataNotification/pre_branches.txt" \
+#   --username "gowe" \
+#   --password "06AugDec1996\!@" \
+#   --earliest_time="-48h" \
+#   --latest_time="now" \
+#   --query_names "USM_Pre_Stage_Information"

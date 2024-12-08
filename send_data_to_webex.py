@@ -7,31 +7,39 @@ import argparse
 # Suppress warnings for insecure HTTPS requests
 warnings.filterwarnings("ignore", message="Unverified HTTPS request")
 
-# Hardcoded values
-QUERY_FILE = "/Users/gowe/Desktop/MyWork/SplunkDataNotification/usm_splunk_query_precommit_dynamic_values.txt"
+# Query files mapping
+QUERY_FILES = {
+    "precommit": "/Users/gowe/Desktop/MyWork/SplunkDataNotification/usm_splunk_query_precommit_dynamic_values.txt",
+    "production": "/Users/gowe/Desktop/MyWork/SplunkDataNotification/usm_splunk_query_production_dynamic_values.txt"
+}
 BRANCHES_FILE = "/Users/gowe/Desktop/MyWork/SplunkDataNotification/usm_pre_branches.txt"
 SPLUNK_USERNAME = "gowe"
 SPLUNK_PASSWORD = "06AugDec1996!@"
 ACCESS_TOKEN = "NTg0ZTFlOWQtNzUwZi00NDVhLWI4MWYtYjlkM2RjYmFiZWRiOWMyMjI5NDktZTQ0_PF84_1eb65fdf-9643-417f-9974-ad72cae0e10f"
 ROOM_ID = "Y2lzY29zcGFyazovL3VzL1JPT00vZjk4NDI5NDAtMTdmMS0xMWVmLTliNTQtNGI1MDc3MjIzZDlh"
 
-def load_query(file_path, query_name):
-    """Load a specific query from a file."""
-    with open(file_path, 'r') as file:
-        queries = file.read().splitlines()
+def load_query(query_name):
+    """Load a specific query from the appropriate file."""
+    for query_type, file_path in QUERY_FILES.items():
+        with open(file_path, 'r') as file:
+            queries = file.read().splitlines()
+        
+        query_found = False
+        query_content = []
+        
+        for line in queries:
+            if line.strip() == f"[{query_name}]":
+                query_found = True
+            elif query_found:
+                if line.startswith("[") and line.endswith("]"):
+                    break  # Stop if another query starts
+                query_content.append(line.strip())
+        
+        if query_content:
+            print(f"Query '{query_name}' found in {query_type} file.")
+            return "\n".join(query_content)
     
-    query_found = False
-    query_content = []
-    
-    for line in queries:
-        if line.strip() == f"[{query_name}]":
-            query_found = True
-        elif query_found:
-            if line.startswith("[") and line.endswith("]"):
-                break  # Stop if another query starts
-            query_content.append(line.strip())
-    
-    return "\n".join(query_content) if query_content else None
+    return None
 
 def load_branches(file_path):
     """Load branch names from a file and format them for the Splunk query."""
@@ -87,9 +95,9 @@ if __name__ == "__main__":
 
     # Loop through each query
     for query_name in args.query_names:
-        search_query_template = load_query(QUERY_FILE, query_name)
+        search_query_template = load_query(query_name)
         if not search_query_template:
-            header = f"### Splunk Query Results:\n\n**Query '{query_name}' not found in {QUERY_FILE}**"
+            header = f"### Splunk Query Results:\n\n**Query '{query_name}' not found in either file**"
             send_message_to_bot(header, "")
             continue
         
@@ -143,13 +151,12 @@ if __name__ == "__main__":
             body = "No results found"
             send_message_to_bot(header, body)
 
-
-# python3 send_table_with_colored_format.py \
-#   --query_names "USM_Pre_Build_stats_Table_format" \
-#   --earliest_time="-48h" \
-#   --latest_time="now" 
+# # python3 send_table_with_colored_format.py \
+# #   --query_names "USM_Pre_Build_stats_Table_format" \
+# #   --earliest_time="-48h" \
+# #   --latest_time="now" 
 
 #  python3 send_data_to_webex.py \
-#   --query_names "USM_Pre_Build_stats_Table_format" \
+# #   --query_names "USM_Pre_Build_stats_Table_format" \
 #   --earliest_time="-48h" \
 #   --latest_time="now"

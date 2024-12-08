@@ -1,8 +1,8 @@
+import argparse
 import requests
 import time
 import warnings
 from tabulate import tabulate
-import argparse
 
 # Suppress warnings for insecure HTTPS requests
 warnings.filterwarnings("ignore", message="Unverified HTTPS request")
@@ -85,13 +85,19 @@ if __name__ == "__main__":
     parser.add_argument("--query_names", nargs='+', required=True, help="List of query names to execute")
     parser.add_argument("--earliest_time", required=True, help="Earliest time for the query")
     parser.add_argument("--latest_time", required=True, help="Latest time for the query")
-    
+    parser.add_argument("--branch_names", nargs='*', help="List of branch names to include in the query")
+
     args = parser.parse_args()
 
     # Load branch names
-    branch_names = load_branches(BRANCHES_FILE)
-    if not branch_names:
-        raise ValueError(f"No branch names found in {BRANCHES_FILE}")
+    if args.branch_names:
+        # If branch names are passed via command line, use them
+        branch_names = ", ".join(f'"{branch.strip()}"' for branch in args.branch_names if branch.strip())
+    else:
+        # If no branch names are passed, load from the file
+        branch_names = load_branches(BRANCHES_FILE)
+        if not branch_names:
+            raise ValueError(f"No branch names found in {BRANCHES_FILE}")
 
     # Loop through each query
     for query_name in args.query_names:
@@ -151,8 +157,6 @@ if __name__ == "__main__":
             body = "No results found"
             send_message_to_bot(header, body)
 
-
-#  python3 send_data_to_webex.py \
-#   --query_names "USM_Pre_Build_stats_Table_format" \
-#   --earliest_time="-48h" \
-#   --latest_time="now"
+# python3 send.py --query_names "USM_Pre_Build_stats_Table_format" --earliest_time="-48h" --latest_time="now" --branch_names "IMS_7_8_MAIN" "IMS_7_6_MAIN"
+#  python3 send.py --query_names "USM_Prd_Stage_Statistics_Builds" --earliest_time="-48h" --latest_time="now" --branch_names "USM/IMS_7_8_MAIN"
+# python3 send.py --query_names "USM_Prd_Stage_Statistics_Builds" --earliest_time="-48h" --latest_time="now" --branch_names "USM/IMS_7_8_MAIN" "USM/IMS_7_6_MAIN"

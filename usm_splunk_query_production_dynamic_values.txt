@@ -1,34 +1,34 @@
-[USM_Prd_Total_Builds]
+[USM_Production_Total_Builds]
 search index="jenkins_statistics" source="/job_event" sourcetype="json:jenkins" type="completed" host IN ("firepower-build.service.ntd.ciscolabs.com","engci-private-rtp.cisco.com") job_name IN ($BRANCH_NAMES) 
   | stats count as total_builds
   | table total_builds
 
 
-[USM_Prd_Successful_Builds]
+[USM_Production_Successful_Builds]
 search index="jenkins_statistics" source="/job_event" sourcetype="json:jenkins" type="completed" host IN ("firepower-build.service.ntd.ciscolabs.com","engci-private-rtp.cisco.com") job_name IN ($BRANCH_NAMES) 
   | stats count(eval(job_result=="SUCCESS")) as successful_builds
   | table successful_builds
 
 
-[USM_Prd_Failed_Builds]
+[USM_Production_Failed_Builds]
 search index="jenkins_statistics" source="/job_event" sourcetype="json:jenkins" type="completed" host IN ("firepower-build.service.ntd.ciscolabs.com","engci-private-rtp.cisco.com") job_name IN ($BRANCH_NAMES) 
   | stats count(eval(job_result=="FAILURE")) as failed_builds
   | table failed_builds
 
 
-[USM_Prd_Unstable_Builds]
+[USM_Production_Unstable_Builds]
 search index="jenkins_statistics" source="/job_event" sourcetype="json:jenkins" type="completed" host IN ("firepower-build.service.ntd.ciscolabs.com","engci-private-rtp.cisco.com") job_name IN ($BRANCH_NAMES) 
   | stats count(eval(job_result=="UNSTABLE")) as unstable_builds
   | table unstable_builds
 
 
-[USM_Prd_Aborted_Builds]
+[USM_Production_Aborted_Builds]
 search index="jenkins_statistics" source="/job_event" sourcetype="json:jenkins" type="completed" host IN ("firepower-build.service.ntd.ciscolabs.com","engci-private-rtp.cisco.com") job_name IN ($BRANCH_NAMES) 
   | stats count(eval(job_result=="ABORTED")) as aborted_builds, count(eval(job_result=="UNSTABLE")) as unstable_builds
   | table aborted_builds
 
 
-[USM_Pre_Table_format]
+[USM_Production_Table_format]
 search index="jenkins_statistics" source="/job_event" sourcetype="json:jenkins" host IN ("firepower-build.service.ntd.ciscolabs.com","engci-private-rtp.cisco.com") job_name IN ($BRANCH_NAMES) type="completed"
 | sort by -_time
 | streamstats count as rank by job_name
@@ -49,7 +49,7 @@ search index="jenkins_statistics" source="/job_event" sourcetype="json:jenkins" 
 
 
 
-[USM_Prd_Stage_Statistics_Builds]
+[USM_Production_Stage_Statistics_Builds]
 search index="jenkins_statistics" source="/job_event" sourcetype="json:jenkins" host IN ("firepower-build.service.ntd.ciscolabs.com","engci-private-rtp.cisco.com") job_name IN ($BRANCH_NAMES) type="completed"
 | eval stage_fields=mvzip('stages{}.name', mvzip('stages{}.duration',mvzip('stages{}.status','stages{}.id'))) 
 | mvexpand stage_fields 

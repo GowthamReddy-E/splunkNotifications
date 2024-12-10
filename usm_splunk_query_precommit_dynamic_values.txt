@@ -1,4 +1,4 @@
-[USM_Pre_Total_Builds]
+[USM_Precommits_Total_Builds]
 search index="jenkins" event_tag="build_summary" sourcetype="json:jenkins" 
 host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" metadata.branchName IN ($BRANCH_NAMES)
 | fillnull value="-" metadata.branchName
@@ -7,7 +7,7 @@ host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" metadata.branchName IN
 
 
 
-[USM_Pre_Successful_Builds]
+[USM_Precommits_Successful_Builds]
 search index="jenkins" event_tag="build_summary" sourcetype="json:jenkins" 
 host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" metadata.branchName IN ($BRANCH_NAMES)
 | fillnull value="-" metadata.branchName
@@ -16,7 +16,7 @@ host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" metadata.branchName IN
 
 
 
-[USM_Pre_Failed_Builds]
+[USM_Precommits_Failed_Builds]
 search index="jenkins" event_tag="build_summary" sourcetype="json:jenkins" 
 host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" metadata.branchName IN ($BRANCH_NAMES)
 | fillnull value="-" metadata.branchName
@@ -25,7 +25,7 @@ host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" metadata.branchName IN
 
 
 
-[USM_Pre_Unstable_Builds]
+[USM_Precommits_Unstable_Builds]
 search index="jenkins" event_tag="build_summary" sourcetype="json:jenkins" 
 host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" metadata.branchName IN ($BRANCH_NAMES)
 | fillnull value="-" metadata.branchName
@@ -34,7 +34,7 @@ host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" metadata.branchName IN
 
 
 
-[USM_Pre_Aborted_Builds]
+[USM_Precommits_Aborted_Builds]
 search index="jenkins" event_tag="build_summary" sourcetype="json:jenkins" 
 host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" metadata.branchName IN ($BRANCH_NAMES)
 | fillnull value="-" metadata.branchName
@@ -43,7 +43,7 @@ host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" metadata.branchName IN
 
 
 
-[USM_Pre_Build_stats_Table_format]
+[USM_Precommits_Build_stats_Table_format]
 search (index="jenkins" event_tag="build_summary" sourcetype="json:jenkins" host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" metadata.branchName IN ($BRANCH_NAMES)) OR
 (index="jenkins_statistics" source="/job_event" sourcetype="json:jenkins" host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" type="completed" metadata.branchName IN ($BRANCH_NAMES))
 | stats values(*) as * by job_name build_number
@@ -74,7 +74,7 @@ search (index="jenkins" event_tag="build_summary" sourcetype="json:jenkins" host
 
 
 
-[USM_Pre_Stage_Information]
+[USM_Precommits_Stage_Information]
 search index="jenkins_statistics" source="/job_event" sourcetype="json:jenkins" host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" type="completed" metadata.branchName IN ($BRANCH_NAMES)
     | eval stage_fields=mvzip('stages{}.name', mvzip('stages{}.duration',mvzip('stages{}.status','stages{}.id'))) 
     | mvexpand stage_fields 
@@ -89,7 +89,7 @@ search index="jenkins_statistics" source="/job_event" sourcetype="json:jenkins" 
 
 
 
-[USM_Pre_Review_Statistics]
+[USM_Precommits_Review_Statistics]
 search index="jenkins" event_tag="build_summary" sourcetype="json:jenkins" host="jenkins.service.ntd.ciscolabs.com" job_name="USM/*" 
 | stats count as total_builds, count(eval(job_result=="SUCCESS")) as successful_builds, count(eval(job_result=="FAILURE")) as failed_builds, count(eval(job_result=="ABORTED")) as aborted_builds, count(eval(job_result=="UNSTABLE")) as unstable_builds by metadata.review, review_owner, metadata.status, job_name, metadata.branchName
 | eval failure_percentage=round(((failed_builds+unstable_builds)/total_builds)*100,2)

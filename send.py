@@ -12,7 +12,7 @@ QUERY_FILES = {
     "precommit": "/Users/gowe/Desktop/MyWork/SplunkDataNotification/usm_splunk_query_precommit_dynamic_values.txt",
     "production": "/Users/gowe/Desktop/MyWork/SplunkDataNotification/usm_splunk_query_production_dynamic_values.txt"
 }
-BRANCHES_FILE = "/Users/gowe/Desktop/MyWork/SplunkDataNotification/usm_pre_branches.txt"
+BRANCHES_FILE = "/Users/gowe/Desktop/MyWork/SplunkDataNotification/USM_IMS_Branches.txt"
 SPLUNK_USERNAME = "gowe"
 SPLUNK_PASSWORD = "06AugDec1996!@"
 ACCESS_TOKEN = "NTg0ZTFlOWQtNzUwZi00NDVhLWI4MWYtYjlkM2RjYmFiZWRiOWMyMjI5NDktZTQ0_PF84_1eb65fdf-9643-417f-9974-ad72cae0e10f"
@@ -157,6 +157,6 @@ if __name__ == "__main__":
             body = "No results found"
             send_message_to_bot(header, body)
 
-# python3 send.py --query_names "USM_Pre_Build_stats_Table_format" --earliest_time="-48h" --latest_time="now" --branch_names "IMS_7_8_MAIN" "IMS_7_6_MAIN"
-#  python3 send.py --query_names "USM_Prd_Stage_Statistics_Builds" --earliest_time="-48h" --latest_time="now" --branch_names "USM/IMS_7_8_MAIN"
-# python3 send.py --query_names "USM_Prd_Stage_Statistics_Builds" --earliest_time="-48h" --latest_time="now" --branch_names "USM/IMS_7_8_MAIN" "USM/IMS_7_6_MAIN"
+# python3 send.py --query_names "USM_Production_Stage_Statistics_Builds" --earliest_time="-48h" --latest_time="now" --branch_names "USM/IMS_7_8_MAIN"
+# python3 send.py --query_names "USM_Production_Total_Builds" --earliest_time="-48h" --latest_time="now" --branch_names "USM/IMS_7_8_MAIN"
+# python3 send.py --query_names "USM_Production_Stage_Statistics_Builds" --earliest_time="-48h" --latest_time="now" --branch_names "USM/IMS_7_8_MAIN" "USM/IMS_7_6_MAIN"

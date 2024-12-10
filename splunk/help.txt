@@ -1,0 +1,19 @@
+USM_Precommit_Total_Builds
+USM_Precommit_Successful_Builds
+USM_Precommit_Failed_Builds
+USM_Precommit_Unstable_Builds
+USM_Precommit_Aborted_Builds
+USM_Precommit_Build_stats_Table_format
+USM_Precommit_Stage_Information
+USM_Precommit_Review_Statistics
+
+USM_Production_Total_Builds
+USM_Production_Successful_Builds
+USM_Production_Failed_Builds
+USM_Production_Unstable_Builds
+USM_Production_Aborted_Builds
+USM_Production_Table_format
+USM_Production_Stage_Statistics_Builds
+
+try to ask questions like this 
+Give me USM_Precommit_Total_Builds count from -480h to now of branch IMS_7_4_1_MAIN
